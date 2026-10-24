@@ -1,0 +1,121 @@
+/* ==========================================================
+   SPESE — stili della schermata elenco (features/expense-list.js)
+   ========================================================== */
+
+/* Riquadri riepilogo */
+.summary-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 18px;
+}
+
+.summary-card {
+    border-radius: 14px;
+    padding: 16px;
+    color: white;
+}
+.summary-card.month { background: linear-gradient(135deg, #007AFF, #0051D5); }
+.summary-card.total { background: linear-gradient(135deg, #34C759, #248A3D); }
+
+.summary-label { font-size: 13px; opacity: 0.9; margin-bottom: 6px; }
+.summary-value { font-size: 26px; font-weight: 700; letter-spacing: -0.5px; }
+
+.filters-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 10px;
+}
+
+/* Riepilogo del contesto filtrato */
+.context-banner {
+    background: var(--card);
+    border-radius: 14px;
+    border-left: 4px solid var(--primary);
+    padding: 12px 16px 14px;
+    margin: 6px 0 16px;
+    box-shadow: var(--shadow);
+}
+.cb-head { display: flex; justify-content: space-between; align-items: center; }
+.cb-label { font-size: 13px; font-weight: 600; color: var(--text-secondary); }
+.cb-clear {
+    width: 28px;
+    height: 28px;
+    border-radius: 14px;
+    border: none;
+    background: var(--bg);
+    color: var(--text-secondary);
+    font-size: 13px;
+    cursor: pointer;
+}
+.cb-name { font-size: 17px; font-weight: 600; margin: 2px 0 6px; }
+.cb-total { font-size: 28px; font-weight: 700; letter-spacing: -0.5px; }
+.cb-meta { font-size: 13px; color: var(--text-secondary); margin-top: 4px; }
+
+/* Lista */
+.expense-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: var(--card);
+    border-radius: 12px;
+    padding: 14px 16px;
+    margin-bottom: 10px;
+    box-shadow: var(--shadow);
+    cursor: pointer;
+    transition: transform 0.1s;
+}
+.expense-item:active { transform: scale(0.985); }
+
+.exp-left { flex: 1; min-width: 0; }
+.exp-name {
+    font-size: 17px;
+    font-weight: 600;
+    margin-bottom: 6px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.exp-meta { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.exp-date { font-size: 13px; color: var(--text-secondary); }
+.exp-cost { font-size: 19px; font-weight: 700; white-space: nowrap; }
+
+/* Intestazione mese con subtotale */
+.month-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 12px;
+    margin: 20px 2px 10px;
+}
+.month-header.first { margin-top: 6px; }
+.mh-name {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+.mh-total { font-size: 14px; font-weight: 700; }
+
+/* Pulsante + */
+.fab {
+    position: fixed;
+    bottom: calc(80px + env(safe-area-inset-bottom));
+    right: 20px;
+    width: 56px;
+    height: 56px;
+    border-radius: 28px;
+    background: var(--primary);
+    color: white;
+    border: none;
+    font-size: 30px;
+    box-shadow: 0 4px 12px rgba(0,122,255,0.4);
+    cursor: pointer;
+    z-index: 99;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.fab:active { transform: scale(0.92); }

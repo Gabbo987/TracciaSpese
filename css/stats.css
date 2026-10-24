@@ -1,0 +1,219 @@
+/* ==========================================================
+   STATISTICHE — stili di features/stats.js, features/trend.js
+   e del grafico ui/line-chart.js
+   ========================================================== */
+
+.stats-caption {
+    text-align: center;
+    font-size: 13px;
+    color: var(--text-secondary);
+    margin: 0 0 16px;
+}
+
+/* ---------- Torta ---------- */
+.donut-wrap { display: flex; justify-content: center; margin: 6px 0 22px; }
+.donut {
+    width: 200px;
+    height: 200px;
+    border-radius: 50%;
+    position: relative;
+}
+.donut::after {
+    content: '';
+    position: absolute;
+    inset: 27px;
+    background: var(--card);
+    border-radius: 50%;
+}
+.donut-center {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 1;
+}
+.donut-total { font-size: 24px; font-weight: 700; letter-spacing: -0.5px; }
+.donut-caption { font-size: 12px; color: var(--text-secondary); margin-top: 2px; }
+
+/* ---------- Riepilogo ---------- */
+.stat-cards {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 22px;
+}
+.stat-mini {
+    background: var(--card);
+    border-radius: 14px;
+    padding: 14px;
+    box-shadow: var(--shadow);
+}
+.stat-mini-value {
+    font-size: 20px;
+    font-weight: 700;
+    letter-spacing: -0.3px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.stat-mini-label { font-size: 12px; color: var(--text-secondary); margin-top: 3px; }
+
+/* ---------- Dettaglio espandibile ---------- */
+.breakdown-item {
+    background: var(--card);
+    border-radius: 12px;
+    margin-bottom: 10px;
+    box-shadow: var(--shadow);
+    overflow: hidden;
+}
+.breakdown-item + .list-header { margin-top: 24px; }
+
+.bd-head { padding: 14px 16px; cursor: pointer; }
+.bd-top { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 9px; }
+.bd-name { display: flex; align-items: center; gap: 8px; font-weight: 600; font-size: 16px; min-width: 0; }
+.bd-cat { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.bd-right { display: flex; align-items: center; gap: 10px; }
+.bd-amount { font-weight: 700; font-size: 16px; white-space: nowrap; }
+.bd-chevron {
+    display: inline-block;
+    color: var(--text-secondary);
+    font-size: 22px;
+    line-height: 1;
+    transition: transform 0.2s;
+}
+.breakdown-item.open .bd-chevron { transform: rotate(90deg); }
+
+.bd-bar { height: 6px; background: var(--bg); border-radius: 3px; overflow: hidden; margin-bottom: 9px; }
+.bd-bar-fill { height: 100%; border-radius: 3px; }
+.bd-meta { font-size: 13px; color: var(--text-secondary); display: flex; gap: 16px; }
+
+.bd-list {
+    display: none;
+    padding: 0 16px 4px;
+    border-top: 1px solid var(--bg);
+}
+.breakdown-item.open .bd-list { display: block; }
+
+.bd-exp {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 11px 0;
+    border-bottom: 1px solid var(--bg);
+    cursor: pointer;
+}
+.bd-exp:last-child { border-bottom: none; }
+.bd-exp:active { opacity: 0.6; }
+.bd-exp-left { min-width: 0; }
+.bd-exp-name {
+    font-size: 15px;
+    font-weight: 500;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.bd-exp-sub {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 4px;
+    font-size: 12px;
+    color: var(--text-secondary);
+}
+.bd-exp-sub .chip { font-size: 11px; padding: 2px 8px; }
+.bd-exp-cost { font-weight: 600; font-size: 15px; white-space: nowrap; }
+
+/* ---------- Andamento nel tempo ---------- */
+.trend-card {
+    background: var(--card);
+    border-radius: 14px;
+    padding: 14px 12px 12px;
+    margin-bottom: 22px;
+    box-shadow: var(--shadow);
+}
+
+.trend-chips {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    padding-bottom: 4px;
+    margin-bottom: 10px;
+    scrollbar-width: none;
+}
+.trend-chips::-webkit-scrollbar { display: none; }
+
+.trend-chip {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    border-radius: 20px;
+    border: 1px solid var(--border);
+    background: var(--card);
+    color: var(--text);
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+}
+.trend-chip.on { background: var(--primary); border-color: var(--primary); color: #fff; }
+
+.seg-control.small { margin-bottom: 8px; }
+.seg-control.small .seg { padding: 6px; font-size: 13px; }
+
+.trend-foot {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    margin-top: 8px;
+    padding-top: 10px;
+    border-top: 1px solid var(--bg);
+}
+.trend-foot > div { min-width: 0; }
+.tf-label {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 11px;
+    color: var(--text-secondary);
+}
+.tf-value { display: block; font-size: 15px; font-weight: 700; margin-top: 2px; }
+.tf-sub {
+    display: block;
+    font-size: 11px;
+    color: var(--text-secondary);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.tf-dash { display: inline-block; width: 14px; border-top: 2px dashed; }
+
+/* ---------- Grafico a linea ---------- */
+.lc-wrap { position: relative; }
+.lc-svg { display: block; max-width: 100%; height: auto; touch-action: pan-y; }
+.lc-axis { fill: var(--text-secondary); font-size: 11px; }
+.lc-grid { stroke: var(--border); stroke-width: 1; opacity: 0.6; }
+.lc-avg { stroke-width: 1.5; stroke-dasharray: 5 4; opacity: 0.75; }
+.lc-guide { stroke: var(--text-secondary); stroke-width: 1; stroke-dasharray: 3 3; }
+.lc-peak { fill: var(--text); font-size: 12px; font-weight: 700; }
+.lc-empty { padding: 40px 12px; text-align: center; font-size: 14px; color: var(--text-secondary); }
+
+.lc-tip {
+    position: absolute;
+    top: 0;
+    padding: 6px 10px;
+    border-radius: 8px;
+    background: var(--text);
+    color: var(--card);
+    font-size: 12px;
+    white-space: nowrap;
+    pointer-events: none;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    z-index: 2;
+}
+.lc-tip-value { font-size: 15px; font-weight: 700; }
+.lc-tip-title, .lc-tip-sub { opacity: 0.75; }
