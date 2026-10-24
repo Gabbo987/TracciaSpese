@@ -1,8 +1,10 @@
 // ==========================================================
-// LINE CHART — grafico a linea riutilizzabile, in SVG puro.
-// La curva usa un'interpolazione "monotona": passa esattamente
-// per ogni punto e tra due punti non sale oltre il più alto né
-// scende sotto il più basso (niente picchi inventati, niente
+// LINE CHART — grafico a linee riutilizzabile, in SVG puro.
+// Una linea:  area colorata, media tratteggiata, picco con valore.
+// Più linee:  una per serie (per confrontare), ognuna col suo picco.
+// Le curve usano un'interpolazione "monotona": passano esattamente
+// per ogni punto e tra due punti non salgono oltre il più alto né
+// scendono sotto il più basso (niente picchi inventati, niente
 // valori negativi). Toccando il grafico appare il dettaglio.
 // ==========================================================
 import { esc, money, moneyShort } from '../core/format.js';
@@ -12,18 +14,17 @@ const r = v => Math.round(v * 10) / 10;
 
 /**
  * container: elemento in cui disegnare
- * points:    [{ label, tip, sub, value }]  label = asse X, tip/sub = dettaglio al tocco
- * opts:      { color, average, height }
+ * labels:    [{ label, tip }]                  uno per punto: asse X e titolo del dettaglio
+ * series:    [{ name, color, values, subs? }]  una o più linee (la prima resta in primo piano)
+ * opts:      { average, height }               average: linea tratteggiata, solo con una linea
  */
-export function renderLineChart(container, points, opts = {}) {
-    const n = points.length;
-    if (!n) { container.innerHTML = '<div class="lc-empty">Nessun dato</div>'; return; }
+export function renderLineChart(container, labels, series, opts = {}) {
+    const n = labels.length;
+    if (!n || !series.length) { container.innerHTML = '<div class="lc-empty">Nessun dato</div>'; return; }
 
-    const color = opts.color || '#007AFF';
     const W = Math.max(container.clientWidth || 0, 280);
     const H = opts.height || 220;
-    const values = points.map(p => p.value);
-    const maxV = Math.max(0, ...values);
+    const maxV = Math.max(0, ...series.flatMap(s => s.values));
     const ticks = niceTicks(maxV);
     const yMax = ticks[ticks.length - 1];
 
@@ -33,11 +34,8 @@ export function renderLineChart(container, points, opts = {}) {
     const base = pad.top + ih;
     const X = i => pad.left + (n === 1 ? iw / 2 : (i * iw) / (n - 1));
     const Y = v => base - (v / yMax) * ih;
-    const pts = values.map((v, i) => [X(i), Y(v)]);
-    const gradId = `lc-grad-${++uid}`;
-
-    const line = monotonePath(pts);
-    const area = n > 1 ? `${line} L${r(pts[n - 1][0])},${base} L${r(pts[0][0])},${base} Z` : '';
+    const coords = series.map(s => s.values.map((v, i) => [X(i), Y(v)]));
+    const anchorAt = x => (x - pad.left < 20 ? 'start' : W - pad.right - x < 20 ? 'end' : 'middle');
 
     // Griglia orizzontale con valori
     const grid = ticks.map(t => `
@@ -46,87 +44,127 @@ export function renderLineChart(container, points, opts = {}) {
 
     // Etichette asse X: al massimo una ogni ~58px
     const every = Math.ceil(n / Math.max(1, Math.floor(iw / 58)));
-    const anchorAt = x => (x - pad.left < 20 ? 'start' : W - pad.right - x < 20 ? 'end' : 'middle');
-    const xLabels = points.map((p, i) => (i % every ? '' :
-        `<text class="lc-axis" x="${r(X(i))}" y="${H - 8}" text-anchor="${anchorAt(X(i))}">${esc(p.label)}</text>`)).join('');
+    const xLabels = labels.map((l, i) => (i % every ? '' :
+        `<text class="lc-axis" x="${r(X(i))}" y="${H - 8}" text-anchor="${anchorAt(X(i))}">${esc(l.label)}</text>`)).join('');
 
-    // Linea della media
-    const avg = opts.average > 0
-        ? `<line class="lc-avg" x1="${pad.left}" x2="${W - pad.right}" y1="${r(Y(opts.average))}" y2="${r(Y(opts.average))}" stroke="${color}"/>`
-        : '';
-
-    // Pallini sui punti (solo se non sono troppi)
-    const dots = n <= 40 ? pts.map(([x, y]) =>
-        `<circle cx="${r(x)}" cy="${r(y)}" r="3" style="fill:var(--card);stroke:${color};stroke-width:2"/>`).join('') : '';
-
-    // Picco evidenziato
-    const peakI = values.indexOf(maxV);
-    let peak = '';
-    if (maxV > 0) {
-        const [px, py] = pts[peakI];
-        peak = `<circle cx="${r(px)}" cy="${r(py)}" r="5" style="fill:${color};stroke:var(--card);stroke-width:2"/>
-                <text class="lc-peak" x="${r(px)}" y="${r(py - 11)}" text-anchor="${anchorAt(px)}">${esc(money(maxV))}</text>`;
-    }
+    const plot = series.length === 1
+        ? singleSeries(series[0], coords[0], { n, base, W, pad, Y, anchorAt, average: opts.average })
+        : multiSeries(series, coords, n);
 
     container.innerHTML = `
         <svg class="lc-svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" role="img">
-            <defs>
-                <linearGradient id="${gradId}" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0" stop-color="${color}" stop-opacity="0.28"/>
-                    <stop offset="1" stop-color="${color}" stop-opacity="0"/>
-                </linearGradient>
-            </defs>
             ${grid}
-            ${area ? `<path d="${area}" fill="url(#${gradId})"/>` : ''}
-            ${avg}
-            <path d="${line}" fill="none" stroke="${color}" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
-            ${dots}
-            ${peak}
+            ${plot}
             ${xLabels}
             <line class="lc-guide" data-guide x1="0" x2="0" y1="${pad.top}" y2="${base}" style="display:none"/>
-            <circle data-focus r="5" style="display:none;fill:${color};stroke:var(--card);stroke-width:2"/>
+            ${series.map(s => `<circle data-focus r="5" style="display:none;fill:${s.color};stroke:var(--card);stroke-width:2"/>`).join('')}
             <rect data-hit x="${pad.left - 12}" y="0" width="${iw + 24}" height="${H}" fill="transparent"/>
         </svg>
         <div class="lc-tip" data-tip hidden></div>`;
 
-    attachTooltip(container, points, pts, { W, pad, iw });
+    attachTooltip(container, labels, series, coords, { W, pad, iw, n });
+}
+
+// ---------- Una linea ----------
+function singleSeries(s, pts, { n, base, W, pad, Y, anchorAt, average }) {
+    const gradId = `lc-grad-${++uid}`;
+    const line = monotonePath(pts);
+    const area = n > 1
+        ? `<path d="${line} L${r(pts[n - 1][0])},${base} L${r(pts[0][0])},${base} Z" fill="url(#${gradId})"/>`
+        : '';
+    const avg = average > 0
+        ? `<line class="lc-avg" x1="${pad.left}" x2="${W - pad.right}" y1="${r(Y(average))}" y2="${r(Y(average))}" stroke="${s.color}"/>`
+        : '';
+    const dots = n <= 40 ? pts.map(([x, y]) =>
+        `<circle cx="${r(x)}" cy="${r(y)}" r="3" style="fill:var(--card);stroke:${s.color};stroke-width:2"/>`).join('') : '';
+
+    const maxV = Math.max(...s.values);
+    let peak = '';
+    if (maxV > 0) {
+        const [px, py] = pts[s.values.indexOf(maxV)];
+        peak = `<circle cx="${r(px)}" cy="${r(py)}" r="5" style="fill:${s.color};stroke:var(--card);stroke-width:2"/>
+                <text class="lc-peak" x="${r(px)}" y="${r(py - 11)}" text-anchor="${anchorAt(px)}">${esc(money(maxV))}</text>`;
+    }
+
+    return `
+        <defs>
+            <linearGradient id="${gradId}" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0" stop-color="${s.color}" stop-opacity="0.28"/>
+                <stop offset="1" stop-color="${s.color}" stop-opacity="0"/>
+            </linearGradient>
+        </defs>
+        ${area}${avg}
+        <path d="${line}" fill="none" stroke="${s.color}" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
+        ${dots}${peak}`;
+}
+
+// ---------- Più linee ----------
+function multiSeries(series, coords, n) {
+    // Disegno dall'ultima alla prima, così la prima serie resta in primo piano
+    return series.map((s, k) => ({ s, pts: coords[k] })).reverse().map(({ s, pts }) => {
+        const dots = n <= 24 ? pts.map(([x, y]) =>
+            `<circle cx="${r(x)}" cy="${r(y)}" r="2.5" style="fill:var(--card);stroke:${s.color};stroke-width:1.5"/>`).join('') : '';
+        const maxV = Math.max(...s.values);
+        const [px, py] = pts[s.values.indexOf(maxV)];
+        const peak = maxV > 0
+            ? `<circle cx="${r(px)}" cy="${r(py)}" r="4.5" style="fill:${s.color};stroke:var(--card);stroke-width:2"/>`
+            : '';
+        return `<path d="${monotonePath(pts)}" fill="none" stroke="${s.color}" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"/>${dots}${peak}`;
+    }).join('');
 }
 
 // ---------- Dettaglio al tocco ----------
-function attachTooltip(container, points, pts, { W, pad, iw }) {
-    const n = points.length;
+function attachTooltip(container, labels, series, coords, { W, pad, iw, n }) {
     const svg = container.querySelector('svg');
     const tip = container.querySelector('[data-tip]');
     const guide = svg.querySelector('[data-guide]');
-    const focus = svg.querySelector('[data-focus]');
+    const focus = [...svg.querySelectorAll('[data-focus]')];
     const hit = svg.querySelector('[data-hit]');
+    const single = series.length === 1;
 
     const show = ev => {
         const box = svg.getBoundingClientRect();
         const px = (ev.clientX - box.left) * (W / (box.width || W));
         const i = n === 1 ? 0 : Math.max(0, Math.min(n - 1, Math.round((px - pad.left) / (iw / (n - 1)))));
-        const [x, y] = pts[i];
-        const p = points[i];
+        const x = coords[0][i][0];
 
-        guide.setAttribute('x1', x); guide.setAttribute('x2', x); guide.style.display = '';
-        focus.setAttribute('cx', x); focus.setAttribute('cy', y); focus.style.display = '';
-        tip.innerHTML = `
-            <div class="lc-tip-title">${esc(p.tip || p.label)}</div>
-            <div class="lc-tip-value">${money(p.value)}</div>
-            ${p.sub ? `<div class="lc-tip-sub">${esc(p.sub)}</div>` : ''}`;
+        guide.setAttribute('x1', x);
+        guide.setAttribute('x2', x);
+        guide.style.display = '';
+        focus.forEach((f, k) => {
+            f.setAttribute('cx', x);
+            f.setAttribute('cy', coords[k][i][1]);
+            f.style.display = single || series[k].values[i] > 0 ? '' : 'none';
+        });
+
+        tip.innerHTML = `<div class="lc-tip-title">${esc(labels[i].tip || labels[i].label)}</div>`
+            + (single ? singleTip(series[0], i) : multiTip(series, i));
         tip.hidden = false;
         const tw = tip.offsetWidth;
         tip.style.left = Math.max(0, Math.min(W - tw, x - tw / 2)) + 'px';
     };
     const hide = () => {
         guide.style.display = 'none';
-        focus.style.display = 'none';
+        focus.forEach(f => { f.style.display = 'none'; });
         tip.hidden = true;
     };
 
     hit.addEventListener('pointerdown', show);
     hit.addEventListener('pointermove', show);
     hit.addEventListener('pointerleave', e => { if (e.pointerType === 'mouse') hide(); });
+}
+
+const singleTip = (s, i) =>
+    `<div class="lc-tip-value">${money(s.values[i])}</div>${s.subs ? `<div class="lc-tip-sub">${esc(s.subs[i])}</div>` : ''}`;
+
+/** Le serie con una spesa in quel punto, dalla più alta, più il totale */
+function multiTip(series, i) {
+    const rows = series.filter(s => s.values[i] > 0).sort((a, b) => b.values[i] - a.values[i]);
+    if (!rows.length) return '<div class="lc-tip-sub">Nessuna spesa</div>';
+    const total = rows.reduce((t, s) => t + s.values[i], 0);
+    return rows.map(s => `
+        <div class="lc-tip-row"><span class="dot sm" style="background:${s.color}"></span><span class="lc-tip-name">${esc(s.name)}</span><b>${money(s.values[i])}</b></div>`).join('')
+        + (rows.length > 1 ? `<div class="lc-tip-row lc-tip-total"><span class="lc-tip-name">Totale</span><b>${money(total)}</b></div>` : '');
 }
 
 // ---------- Matematica ----------

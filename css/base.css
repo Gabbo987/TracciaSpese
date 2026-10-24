@@ -159,6 +159,8 @@ body {
 .btn-secondary { background: var(--bg); color: var(--primary); }
 .btn-danger { background: var(--danger); color: white; }
 .btn + .btn { margin-top: 12px; }
+.btn:disabled { opacity: 0.5; }
+.info-row + .btn { margin-top: 12px; }
 
 /* ---------- Campi e filtri ---------- */
 .select {
@@ -374,3 +376,29 @@ body {
 }
 .suggestion:last-child { border-bottom: none; }
 .suggestion:active { background: var(--bg); }
+
+/* ---------- Messaggio temporaneo (ui/toast.js) ---------- */
+.toast {
+    position: fixed;
+    left: 50%;
+    bottom: calc(150px + env(safe-area-inset-bottom));
+    transform: translate(-50%, 12px);
+    max-width: calc(100% - 40px);
+    padding: 10px 16px;
+    border-radius: 12px;
+    background: var(--text);
+    color: var(--card);
+    font-size: 14px;
+    font-weight: 500;
+    text-align: center;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.25s, transform 0.25s;
+    z-index: 3000;
+}
+.toast.show { opacity: 1; transform: translate(-50%, 0); }
+
+@media (prefers-reduced-motion: reduce) {
+    .toast { transition: none; }
+}

@@ -9,6 +9,7 @@ import { initExpenseForm } from './features/expense-form.js';
 import { initExpenseList } from './features/expense-list.js';
 import { initStats } from './features/stats.js';
 import { initSettings } from './features/settings.js';
+import { initUpdater } from './features/updater.js';
 
 ensureColors(store.getAll().map(e => e.category));
 
@@ -17,3 +18,8 @@ initExpenseForm();
 initExpenseList(document.getElementById('tab-spese'));
 initStats(document.getElementById('tab-stats'));
 initSettings(document.getElementById('tab-settings'));
+initUpdater();
+
+// Avvisa la rete di sicurezza in index.html che l'app è partita
+window.__appReady = true;
+try { sessionStorage.removeItem('bootRetry'); } catch { /* non bloccante */ }
